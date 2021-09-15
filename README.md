@@ -1,8 +1,6 @@
-# Webpack 4 Configuration
+## This is my personal `Webpack 5` configuration for small static projects.
 
-This is my personal `Webpack 4` configuration for small static projects.
-
-##
+---
 
 ## Commands
 
