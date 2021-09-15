@@ -1,13 +1,25 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const path = require('path')
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
-  context: path.resolve(__dirname, 'src'),
-  entry: './js/index.js',
+  entry: './src/index.js',
   output: {
-    filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    filename: '[name].[contenthash].js',
+  },
+  resolve: {
+    extensions: ['.js'],
+    alias: {
+      '@utils': path.resolve(__dirname, 'src/utils/'),
+      '@templates': path.resolve(__dirname, 'src/templates/'),
+      '@styles': path.resolve(__dirname, 'src/styles/'),
+      '@assets': path.resolve(__dirname, 'src/assets/images/'),
+    },
   },
   module: {
     rules: [
@@ -22,17 +34,39 @@ module.exports = {
         },
       },
       {
-        test: /\.(sa|sc|c)ss$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+      {
+        test: /\.png/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/images/[hash][ext][query]',
+        },
+      },
+      {
+        test: /\.(woff|woff2)$/i, // Tipos de fuentes a incluir
+        type: 'asset/resource', // Tipo de módulo a usar (este mismo puede ser usado para archivos de imágenes)
+        generator: {
+          filename: 'assets/fonts/[hash][ext][query]', // Directorio de salida
+        },
       },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './index.html',
+      inject: 'body',
+      template: './public/index.html',
+      filename: './index.html',
     }),
     new MiniCssExtractPlugin({
-      filename: 'main.css',
+      filename: 'assets/css/[name].[contenthash].css',
     }),
+    new Dotenv(),
+    new CleanWebpackPlugin(),
   ],
-}
+  optimization: {
+    minimize: true,
+    minimizer: [new CssMinimizerPlugin(), new TerserPlugin()],
+  },
+};
